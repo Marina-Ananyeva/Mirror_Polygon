@@ -1,4 +1,7 @@
+#define _USE_MATH_DEFINES 
 #include "svg.h"
+
+#include <cmath>
 
 namespace svg {
 
@@ -214,7 +217,8 @@ void Document::Render(std::ostream& out) const {
         doc->Render(context);
     }
 
-    out << "</svg>"sv;
+    out << "</svg>"sv << std::endl;
+    //out << "</svg>"sv;
 }
 
 }  // namespace svg
@@ -222,7 +226,7 @@ void Document::Render(std::ostream& out) const {
 namespace shapes {
 // Реализует метод Draw интерфейса svg::Drawable для Triangle
 void Triangle::Draw(svg::ObjectContainer& container) const {
-    container.Add(svg::Polyline().SetFillColor("rgb(255,0,0)"s).SetStrokeColor("black"s).AddPoint(p1_).AddPoint(p2_).AddPoint(p3_).AddPoint(p1_));
+    container.Add(svg::Polyline().AddPoint(p1_).AddPoint(p2_).AddPoint(p3_).AddPoint(p1_));
 }
 
 svg::Polyline Star::CreateStar(svg::Point center, double outer_rad, double inner_rad, int num_rays) const {

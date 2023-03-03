@@ -55,6 +55,10 @@ public:
 };
 
     using Color = std::variant<std::monostate, std::string, Rgb, Rgba>;
+    // Объявив в заголовочном файле константу со спецификатором inline,
+    // мы сделаем так, что она будет одной на все единицы трансляции,
+    // которые подключают этот заголовок.
+    // В противном случае каждая единица трансляции будет использовать свою копию этой константы
     using namespace std::literals;
     inline const Color NoneColor = {"none"s};
 
@@ -232,8 +236,10 @@ struct Point {
     double y = 0;
 };
 
-//Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
-//Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
+/*
+ * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
+ * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
+ */
 struct RenderContext {
     RenderContext(std::ostream& out)
         : out(out) {
@@ -260,10 +266,11 @@ struct RenderContext {
     int indent = 0;
 };
 
-//Абстрактный базовый класс Object служит для унифицированного хранения
-//конкретных тегов SVG-документа
-//Реализует паттерн "Шаблонный метод" для вывода содержимого тега
-
+/*
+ * Абстрактный базовый класс Object служит для унифицированного хранения
+ * конкретных тегов SVG-документа
+ * Реализует паттерн "Шаблонный метод" для вывода содержимого тега
+ */
 class Object {
 public:
     void Render(const RenderContext& context) const;
@@ -274,7 +281,10 @@ private:
     virtual void RenderObject(const RenderContext& context) const = 0;
 };
 
-//Класс Circle моделирует элемент <circle> для отображения круга
+/*
+ * Класс Circle моделирует элемент <circle> для отображения круга
+ * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/circle
+ */
 class Circle final : public Object, public PathProps<Circle> {
 public:
     Circle() = default;
@@ -289,7 +299,10 @@ private:
     double radius_ = 1.0;
 };
 
-//Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
+/*
+ * Класс Polyline моделирует элемент <polyline> для отображения ломаных линий
+ * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/polyline
+ */
 class Polyline final : public Object, public PathProps<Polyline> {
 public:
     Polyline() = default;
@@ -302,7 +315,10 @@ private:
     std::vector<Point> points_;
 };
 
-//Класс Text моделирует элемент <text> для отображения текста
+/*
+ * Класс Text моделирует элемент <text> для отображения текста
+ * https://developer.mozilla.org/en-US/docs/Web/SVG/Element/text
+ */
 class Text final : public Object, public PathProps<Text> {
 public:
     Text() = default;
@@ -338,7 +354,12 @@ class ObjectContainer {
 public:
     ObjectContainer() = default;
 
-    //Метод Add добавляет в svg-документ любой объект типа T
+    /*
+     Метод Add добавляет в svg-документ любой объект типа T
+     Пример использования:
+     ObjectContainer container;
+     container.Add(Circle().SetCenter({20, 30}).SetRadius(15));
+    */
     template <typename T>
     void Add(T obj);
 
@@ -375,7 +396,7 @@ public:
 } // namespace svg
 
 namespace shapes {
-    using namespace std::literals;
+using namespace std::literals;
 class Triangle : public svg::Drawable {
 public:
     Triangle(svg::Point p1, svg::Point p2, svg::Point p3)
