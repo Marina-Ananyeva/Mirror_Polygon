@@ -90,3 +90,123 @@ pair<int, int> solve (const vector<seg>& a) {
  
 	return make_pair (-1, -1);
 }
+
+bool IsPointInsideBoundingBox(geo_objects::Point p, geo_objects::Point p_min, geo_objects::Point p_max) {
+        if (p.x < p_min.x || p.x > p_max.x || p.y < p_min.y || p.y > p_max.y ) {
+            return false;
+        }
+        return true;
+    }
+
+// Точка находится внутри многоугольника
+bool IsPointInPolygon(geo_objects::Point p, geo_objects::Polygon &mp) {
+    bool isInside = false;
+    int count = 0;
+
+    double minX = DBL_MAX;
+    for (int i = 0; i < mp.size(); i++, mp.advance(1)) {
+        minX = min(minX, mp.v()->x);
+    }
+
+    geo_objects::Point p0(p.x, p.y);
+    geo_objects::Point p1(p.x, p.y);
+    geo_objects::Point p2(minX - 10, p.y);// Принимаем наименьшее значение X в качестве конечной точки луча
+
+    // Обходим каждую сторону
+    for (int i = 0; i < mp.size(); i++, mp.advance(1)) {
+        geo_objects::Point c1(mp.v()->x, mp.v()->y);
+        geo_objects::Point c2(mp.cw()->x, mp.cw()->y);
+
+        if (geo_objects::IsPointOnLine(p0, c1, c2)) {
+            return true;
+        }
+        if (fabs (c2.y - c1.y) < EPSILON) { // Параллельно, не пересекаются
+            continue;
+        }
+        if (geo_objects::IsPointOnLine(c1, p1, p2)) {
+            if (c1.y > c2.y) {// Гарантируем только верхнюю конечную точку +1
+                count++;
+            }
+        } else if (geo_objects::IsPointOnLine(c2, p1, p2)) {
+            if (c2.y > c1.y) {// Гарантируем только верхнюю конечную точку +1
+                count++;
+            }
+        } else if (geo_objects::IsIntersect(c1, c2, p1, p2)) {// Параллельная ситуация исключена
+            count++;
+        }
+    }
+    
+    if (count % 2 == 1) {
+        isInside = true;
+    }
+ 
+    return isInside;
+}
+
+struct ang {
+	double a, b;
+};
+
+bool operator <(const ang & p, const ang & q) {
+	if (p.b == 0 && q.b == 0)
+		return p.a < q.a;
+	return p.a * 1ll * q.b < p.b * 1ll * q.a;
+}
+
+long long sq(pt & a, pt & b, pt & c) {
+	return a.x*1ll*(b.y-c.y) + b.x*1ll*(c.y-a.y) + c.x*1ll*(a.y-b.y);
+}
+
+//bool IsPointInPolygonBinarySearch(geo_objects::Point p, geo_objects::Polygon &mp)
+bool IsPointInPolygonBinarySearch() {
+	int n;
+	cin >> n;
+	vector<pt> p(n);
+	int zero_id = 0;
+	for (int i = 0; i < n; ++i) {
+		scanf ("%d%d", &p[i].x, &p[i].y);
+		if (p[i].x < p[zero_id].x || p[i].x == p[zero_id].x && p[i].y < p[zero_id].y) {
+            zero_id = i;
+        }
+	}
+	pt zero = p[zero_id];
+	rotate(p.begin(), p.begin()+zero_id, p.end());
+	p.erase(p.begin());
+	--n;
+
+	vector<ang> a(n);
+	for (int i = 0; i < n; ++i) {
+		a[i].a = p[i].y - zero.y;
+		a[i].b = p[i].x - zero.x;
+		if (a[i].a == 0) {
+            a[i].b = a[i].b < 0 ? -1 : 1;
+        }
+	}
+
+	for (;;) {
+		pt q; // очередной запрос
+		bool in = false;
+		if (q.x >= zero.x) {
+			if (q.x == zero.x && q.y == zero.y) {
+                in = true;
+            }
+			else {
+				ang my = { q.y-zero.y, q.x-zero.x };
+				if (my.a == 0) {
+                    my.b = my.b < 0 ? -1 : 1;
+                }
+				vector<ang>::iterator it = upper_bound (a.begin(), a.end(), my);
+				if (it == a.end() && my.a == a[n-1].a && my.b == a[n-1].b) {
+                    it = a.end()-1;
+                }
+				if (it != a.end() && it != a.begin()) {
+					int p1 = int (it - a.begin());
+					if (sq (p[p1], p[p1-1], q) <= 0) {
+                        in = true;
+                    }
+				}
+			}
+        }
+		return (in ? true : false);
+	}
+}

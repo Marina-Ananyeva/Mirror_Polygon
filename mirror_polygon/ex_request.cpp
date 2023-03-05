@@ -1,4 +1,10 @@
+#define _USE_MATH_DEFINES
+
 #include "ex_request.h"
+
+#include <iostream>
+#include <iomanip>
+#include <cmath>
 
 using namespace std;
 
@@ -12,3 +18,10 @@ using namespace std;
     }
 */
 
+double ComputeAngleBeamFromTwoPoints(geo_objects::Point a, geo_objects::Point b) {
+    //double cos = (a.x * b.x + a.y * b.y) / (sqrt(pow(a.x, 2) + pow(a.y, 2)) * sqrt(pow(b.x, 2) + pow(b.y, 2)));
+    //double angle = acos(cos) * 180.0 / M_PI;
+    double angle = polarAnglePoints(a, b);
+    //cout << fixed << setprecision(3) << angle << '\n';
+    return angle;
+}

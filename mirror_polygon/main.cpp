@@ -12,8 +12,8 @@
 using namespace std;
 
 int main() {
-    //Tests();
-    
+    Tests();
+    /*
     LOG_DURATION("Total"s);
 
     geo_objects::Polygon mp;                                                    //Многоугольник
@@ -41,10 +41,10 @@ int main() {
                 std::cout.rdbuf(out1.rdbuf());
 
                 int size = mp.size();
-                std::vector<svg::Point> vertexes(size + 1);
+                std::vector<geo_objects::Point> vertexes(size + 1);
                 for (int i = 0; i < size + 1; ++i) {
-                    geo_objects::Point p_v = mp.point();
-                    svg::Point p(p_v.x, p_v.y);
+                    geo_objects::Point p = mp.point();
+                    //svg::Point p(p_v.x, p_v.y);
                     vertexes[i] = p;
                     mp.advance(1);
                 }
@@ -58,7 +58,7 @@ int main() {
         std::cout << "\nНе удалось считать данные. Пожалуйста запустите программу повторно."s << "\n"s;
     }
     std::cout << "\nБлагодарим за использование нашей программы!"s << '\n';
-
+    */
     return 0;
 }
 /*

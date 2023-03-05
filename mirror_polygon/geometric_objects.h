@@ -50,7 +50,7 @@ public:
     double length();
   
     double distance(Point);
-    
+
     double distance(Edge);
 
     struct PointHasher {
@@ -61,7 +61,19 @@ public:
     };
 };
 
-double distance(Point p1, Point p2);
+//Функция orientation возвращает значение 1, если обрабатываемые три точки ориентированы положительно,
+// -1, если они ориентированы отрицательно, или 0, если они коллинеарны.
+int orientation(Point, Point, Point);
+
+double polarAnglePoints(Point, Point);
+
+double distance(Point, Point);
+
+// Точка оценки находится на отрезке линии
+bool IsPointOnLine(Point, Point, Point);
+
+// Оцениваем пересечение двух отрезков прямой
+bool IsIntersect(Point, Point, Point, Point);
 //------------------Edge--------------------------
 //Ребро, любые линии
 class Edge {
@@ -124,18 +136,19 @@ public:
     Polygon();
     Polygon(Polygon&);
     Polygon(Vertex*);
-    Vertex *v();
-    int size();
-    Point point();
-    Edge edge();
-    Vertex *cw();
-    Vertex *ccw();
-    Vertex *neighbor(int rotation);
+    Vertex *v() const;
+    int size() const;
+    Point point() const;
+    Edge edge() const;
+    Vertex *cw() const;
+    Vertex *ccw() const;
+    Vertex *neighbor(int rotation) const;
     Vertex *advance(int rotation);
     Vertex *setV(Vertex*);
     Vertex *insert(Point);
     void remove();
     Polygon * split(Vertex*);
+    int IsPolygonConvex();
     ~Polygon();
 };
 

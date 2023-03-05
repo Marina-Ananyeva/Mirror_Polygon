@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+
 #include "geometric_objects.h"
 
 using namespace std;
@@ -52,21 +54,6 @@ int Point::operator>(Point p) const{
     return ((x > p.x) || ((x == p.x) && (y > p.y)));
 }
 
-//Функция orientation возвращает значение 1, если обрабатываемые три точки ориентированы положительно, -1, если они ориентированы отрицательно, или 0, если они коллинеарны.
-
-int orientation(Point p0, Point p1, Point p2) {
-    Point a = p1 - p0;
-    Point b = p2 - p0;
-     double sa = a.x * b.y - b.x * a.y;
-    if (sa > 0.0) {
-        return 1;
-    }
-    if (sa < 0.0) {
-        return -1;
-    }
-    return 0;
-}
-
 enum {LEFT, RIGHT, BEYOND, BEHIND, BETWEEN, ORIGIN, DESTINATION};
 //    СЛЕВА, СПРАВА, ВПЕРЕДИ, ПОЗАДИ, МЕЖДУ, НАЧАЛО, КОНЕЦ
 
@@ -108,12 +95,13 @@ double Point::polarAngle() {
         return ((y > 0.0) ? 90 : 270);
     }
 
-    double theta = atan(y/x);                     // в радианах
-    theta *= 360 / (2 * 3.1415926);               // перевод в градусы
-    if (x > 0.0)                                  // 1 и 4 квадранты
-        return ((y >= 0.0) ? theta : 360 + theta);
-    else                                          // 2 и З квадранты
-        return (180 + theta);
+    double theta = atan(y / x) * 180.0 / M_PI;                        // в радианах
+    //theta *= 180.0  M_PI;                             // перевод в градусы
+    //if (x > 0.0)                                    // 1 и 4 квадранты
+    //    return ((y >= 0.0) ? theta : 360.0 + theta);
+    //else                                            // 2 и З квадранты
+    //    return (180.0 + theta);
+    return theta;
 }
 
 double Point::length() {
@@ -142,9 +130,64 @@ double Point::distance(Edge e) {
     return t;
 }
 
+int orientation(Point p0, Point p1, Point p2) {
+    Point a = p1 - p0;
+    Point b = p2 - p0;
+     double sa = a.x * b.y - b.x * a.y;
+    if (sa > 0.0) {
+        return 1;
+    }
+    if (sa < 0.0) {
+        return -1;
+    }
+    return 0;
+}
+
+double polarAnglePoints(Point a, Point b) {
+    if (fabs(a.y - b.y) < EPSILON && fabs(a.x - b.x) < EPSILON) {
+        return 0.0;
+    }
+    if (fabs(a.y - b.y) < EPSILON) {
+        return ((a.x < b.x - EPSILON) ? 0.0 : 180.0);
+    }
+    if (fabs(a.x - b.x) < EPSILON) {
+        return ((a.y < b.y - EPSILON) ? 90.0 : -90.0);
+    }
+
+    double theta = atan((b.y - a.y) / (b.x - a.x)) * 180.0 / M_PI;
+    if (b.x < a.x - EPSILON) {
+        return ((a.y < b.y - EPSILON) ? 180.0 + theta : -180.0 + theta);
+    }
+    return theta;
+}
+
 double distance(Point p1, Point p2) {
     double d = sqrt(pow((p2.x - p1.x), 2) + pow((p2.y - p1.y), 2));
     return d;
+}
+
+// Точка оценки находится на отрезке линии
+bool IsPointOnLine(Point p0, Point p1, Point p2) {
+    bool flag = false;
+    double d1 = (p1.x - p0.x) * (p2.y - p0.y) - (p2.x - p0.x) * (p1.y - p0.y);
+    if ((abs(d1) < EPSILON) && ((p0.x - p1.x) * (p0.x - p2.x) <= 0) && ((p0.y - p1.y) * (p0.y - p2.y) <= 0)) {
+        flag = true;
+    }
+    return flag;
+}
+ 
+// Оцениваем пересечение двух отрезков прямой
+bool IsIntersect(Point p1, Point p2, Point p3, Point p4) {
+    bool flag = false;
+    double d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
+    if (d != 0) {
+        double r = ((p1.y - p3.y) * (p4.x - p3.x) - (p1.x - p3.x) * (p4.y - p3.y)) / d;
+        double s = ((p1.y - p3.y) * (p2.x - p1.x) - (p1.x - p3.x) * (p2.y - p1.y)) / d;
+        if ((r >= 0) && (r <= 1) && (s >= 0) && (s <= 1)) {
+            flag = true;
+        }
+    }
+    return flag;
 }
 
 //------------------Edge--------------------------
@@ -356,31 +399,31 @@ void Polygon::resize() {
     }
 }
 
-Vertex *Polygon::v() {
+Vertex *Polygon::v() const{
     return _v;
 }
 
-int Polygon::size() {
+int Polygon::size() const{
     return _size;
 }
 
-Point Polygon::point() {
+Point Polygon::point() const{
     return _v->point();
 }
 
-Edge Polygon::edge() {
+Edge Polygon::edge() const{
     return Edge (point(), _v->cw()->point());
 }
 
-Vertex *Polygon::cw() {
+Vertex *Polygon::cw() const{
     return _v->cw();
 }
 
-Vertex *Polygon::ccw() {
+Vertex *Polygon::ccw() const{
     return _v->ccw();
 }
 
-Vertex *Polygon::neighbor(int rotation) {
+Vertex *Polygon::neighbor(int rotation) const{
     return _v->neighbor(rotation);
 }
 
@@ -413,6 +456,35 @@ Polygon *Polygon::split(Vertex *b) {
     return new Polygon(bp);
 }
 
+/*
+   Return whether a polygon in 2D is concave or convex
+   return 0 for incomputables eg: colinear points
+          CONVEX == 1
+          CONCAVE == -1
+   It is assumed that the polygon is simple
+   (does not intersect itself or have holes)
+*/
+int Polygon::IsPolygonConvex() {
+    if (_size == 3) {
+        return 1;
+    }
+
+    long double is_convex = 0.0;
+    for (int i = 0; i < size(); i++, advance(CLOCKWISE)) {
+        Vertex* a = ccw();
+        Vertex *b = v();
+        Vertex *c = cw();
+        Point ab(b->x - c->x, b->y - c->y);
+        Point bc(a->x - b->x, a->y - b->y);
+        long double prev = is_convex;
+        is_convex = ab.x * bc.y - ab.y * bc.x;
+        if (is_convex > 0 && prev < 0 || is_convex < 0 && prev > 0) {
+            return -1;
+        }
+    }
+    return 1;
+}
+
 Polygon::~Polygon() {
     if (_v) {
         Vertex *w = _v->cw();
@@ -426,16 +498,16 @@ Polygon::~Polygon() {
 
 //-------------------------------------------------------------------
 bool pointInConvexPolygon(Point s , Polygon &p) {
-    if (p. size() == 1) {
+    if (p.size() == 1) {
         return (s == p.point());
     }
-    if (p. size () == 2) {
-        int c = s .classify (p. edge ());
+    if (p.size() == 2) {
+        int c = s.classify(p. edge());
         return ( (c==BETWEEN) || (c==ORIGIN) || (c==DESTINATION) );
     }
     Vertex *org = p.v();
     for (int i = 0; i < p.size(); i++, p.advance(CLOCKWISE)) {
-        if (s.classify (p.edge()) == LEFT) {
+        if (s.classify(p.edge()) == LEFT) {
             p.setV(org);
             return false;
         } 
@@ -446,8 +518,8 @@ bool pointInConvexPolygon(Point s , Polygon &p) {
 Vertex *leastVertex(Polygon &p, int (*cmp)(Point*,Point*)) {
     Vertex *bestV = p.v();
     p.advance(CLOCKWISE);
-    for (int  i=1; i < p.size(); p.advance(CLOCKWISE), i++) {
-        if ((*cmp)(p.v(),bestV) < 0) {
+    for (int i = 1; i < p.size(); p.advance(CLOCKWISE), i++) {
+        if ((*cmp)(p.v(), bestV) < 0) {
             bestV = p.v();
         }
     }

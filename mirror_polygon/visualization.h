@@ -11,14 +11,14 @@ using namespace geo_objects;
 
 class PolyGon : public svg::Drawable {
 public:
-    PolyGon(std::vector<svg::Point> vertexes): vertexes_(vertexes) {
+    PolyGon(std::vector<geo_objects::Point> vertexes): vertexes_(vertexes) {
     }
 
     // Реализует метод Draw интерфейса svg::Drawable
     void Draw(svg::ObjectContainer &container) const override;
 
 private:
-    std::vector<svg::Point> vertexes_;
+    std::vector<geo_objects::Point> vertexes_;
 };
 
 class Beam : public svg::Drawable {
@@ -33,8 +33,37 @@ private:
     Edge e_;
 };
 
-void Visualization(std::ostream &, std::vector<svg::Point>, Edge &);
+class Beams : public svg::Drawable {
+public:
+    Beams(std::vector<geo_objects::Edge>& beams): beams_(beams) {
+    }
 
-//void VisualizationPolygon(std::ostream &out, std::vector<svg::Point> vertexes);
+    // Реализует метод Draw интерфейса svg::Drawable
+    void Draw(svg::ObjectContainer &container) const override;
 
-//void VisualizationBeam(std::ostream &out, Edge &e);
+private:
+    std::vector<geo_objects::Edge> beams_;
+};
+
+class Zigzag : public svg::Drawable {
+public:
+    Zigzag(std::vector<geo_objects::Point>& z): z_(z) {
+    }
+
+    // Реализует метод Draw интерфейса svg::Drawable
+    void Draw(svg::ObjectContainer &container) const override;
+
+private:
+    std::vector<geo_objects::Point> z_;
+};
+
+void Visualization(std::ostream &, std::vector<geo_objects::Point>, Edge &);
+
+void VisualizationBeam(std::ostream &out, Edge &e);
+
+void VisualizationBeams(std::ostream &, std::vector<Edge>);
+
+void VisualizationZigzag(std::ostream &, std::vector<geo_objects::Point>);
+
+void VisualizationPolygon(std::ostream &out, std::vector<svg::Point> vertexes);
+

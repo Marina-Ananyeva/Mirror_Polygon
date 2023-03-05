@@ -25,5 +25,5 @@ void CheckPolygonCoordinatesUnique(const std::vector<geo_objects::Point>&);
 
 void CheckPolygonCoordinatesNotIntersecting(const std::vector<geo_objects::Point>&);
 
-void CheckPointInsidePolygon(geo_objects::Point, geo_objects::Point);
+void CheckPointInsidePolygon(geo_objects::Polygon&, geo_objects::Point, geo_objects::Point, geo_objects::Point, geo_objects::Point);
 } //namespace in_reader

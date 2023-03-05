@@ -58,4 +58,12 @@ inline std::set<seg>::iterator prev(std::set<seg>::iterator);
 
 inline std::set<seg>::iterator next(std::set<seg>::iterator);
 
-std::pair<int, int> solve(const std::vector<seg> &);
+std::pair<int, int> solve(const std::vector<seg>&);
+
+bool IsPointInsideBoundingBox(geo_objects::Point, geo_objects::Point, geo_objects::Point);
+
+// Точка находится внутри многоугольника
+bool IsPointInPolygon(geo_objects::Point, geo_objects::Polygon&);
+
+//bool IsPointInPolygonBinarySearch(geo_objects::Point, geo_objects::Polygon&);
+bool IsPointInPolygonBinarySearch();

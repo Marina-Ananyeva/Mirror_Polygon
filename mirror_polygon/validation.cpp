@@ -32,12 +32,39 @@ void CheckPolygonCoordinatesNotIntersecting(const vector<geo_objects::Point>& co
     }
 }
 
-void CheckPointInsidePolygon(geo_objects::Point a, geo_objects::Point b) {
-    //if () {
-    //    throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
-    //}
-
-    //throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+void CheckPointInsidePolygon(geo_objects::Polygon& mp, geo_objects::Point p_min, geo_objects::Point p_max, geo_objects::Point a, geo_objects::Point b) {
+    bool is_inside = IsPointInsideBoundingBox(a, p_min, p_max);
+    if (is_inside) {
+        bool is_inside = IsPointInsideBoundingBox(b, p_min, p_max);
+        if (is_inside) {
+            int is_convex = mp.IsPolygonConvex();
+            if (!is_convex) {
+                is_inside = IsPointInPolygon(a, mp);
+                if (is_inside) {
+                    is_inside = IsPointInPolygon(a, mp);
+                } else {
+                    throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
+                }
+                if (!is_inside) {
+                    throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+                }
+            } else {
+                is_inside = IsPointInPolygonBinarySearch();
+                if (is_inside) {
+                    is_inside = IsPointInPolygonBinarySearch();
+                } else {
+                    throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
+                }
+                if (!is_inside) {
+                    throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+                }               
+            }
+        } else {
+            throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+        }
+    } else {
+        throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
+    }
 }
 } //namespace in_reader
 

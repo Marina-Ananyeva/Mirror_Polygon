@@ -38,7 +38,7 @@ void ReadFromConsole(std::istream& input, geo_objects::Polygon &mp, geo_objects:
     double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
     input >> x1 >> y1 >> x2 >> y2;
 
-    CheckPointInsidePolygon(geo_objects::Point(x1, y1), geo_objects::Point(x2, y2));
+    //CheckPointInsidePolygon(mp, geo_objects::Point(x1, y1), geo_objects::Point(x2, y2));
 
     a.SetPoint(x1, y1);
     b.SetPoint(x2, y2);
@@ -70,7 +70,7 @@ void ReadFromFile(std::istream& input, geo_objects::Polygon &mp, geo_objects::Po
     double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
     input >> x1 >> y1 >> x2 >> y2;
 
-    CheckPointInsidePolygon(geo_objects::Point(x1, y1), geo_objects::Point(x2, y2));
+    //CheckPointInsidePolygon(mp, geo_objects::Point(x1, y1), geo_objects::Point(x2, y2));
 
     a.SetPoint(x1, y1);
     b.SetPoint(x2, y2);
