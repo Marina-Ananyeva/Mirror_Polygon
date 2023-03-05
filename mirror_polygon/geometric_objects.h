@@ -3,6 +3,7 @@
 #include "constants.h"
 
 #include <cmath>
+#include <stdint.h>
 
 namespace geo_objects {
 class Edge;
@@ -26,13 +27,13 @@ public:
     double operator[](int);
     
     // одинаковы ли точки ?
-    int operator==(Point);
-    int operator!=(Point);
+    int operator==(Point) const;
+    int operator!=(Point) const;
     
     // лексикографический порядок отношений, точка а < точки b,
     // если либо а.х < b.х, либо a.х = b.x и а.у < b.у.  
-    int operator<(Point);
-    int operator>(Point);
+    int operator<(Point) const;
+    int operator>(Point) const;
 
     //Разделение плоскости на семь областей направленным отрезком прямой линии
     // Возвращается значение типа перечисления, указывающее на положение
@@ -48,9 +49,19 @@ public:
   
     double length();
   
+    double distance(Point);
+    
     double distance(Edge);
+
+    struct PointHasher {
+        std::size_t operator()(const Point& p) const {
+            uint64_t hash = (size_t)(p.x) * 37 + (size_t)(p.y) * 37 * 37;
+            return static_cast<size_t>(hash);
+        }
+    };
 };
 
+double distance(Point p1, Point p2);
 //------------------Edge--------------------------
 //Ребро, любые линии
 class Edge {
@@ -128,7 +139,7 @@ public:
     ~Polygon();
 };
 
-bool pointlnConvexPolygon(Point, Polygon &);
+bool pointInConvexPolygon(Point, Polygon &);
 
 Vertex *leastVertex(Polygon &p, int (*cmp)(Point *, Point *));
 

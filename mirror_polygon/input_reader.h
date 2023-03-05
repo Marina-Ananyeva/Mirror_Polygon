@@ -9,5 +9,5 @@ void ReadFromConsole(std::istream&, geo_objects::Polygon&, geo_objects::Point&, 
 
 void ReadFromFile(std::istream&, geo_objects::Polygon&, geo_objects::Point&, geo_objects::Point&);
 
-bool ReadQuery(std::istream&, char, geo_objects::Polygon&, geo_objects::Point&, geo_objects::Point&);
+bool ReadQuery(std::istream&, geo_objects::Polygon&, geo_objects::Point&, geo_objects::Point&);
 } //namespace in_reader

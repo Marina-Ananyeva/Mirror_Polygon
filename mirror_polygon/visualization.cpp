@@ -49,7 +49,7 @@ void Visualization(ostream& out, vector<svg::Point> vertexes, Edge& e) {
     doc.Render(out);
 }
 
-/*
+//*
 void VisualizationPolygon(ostream& out, vector<svg::Point> vertexes) {
     Document doc;
     vector<unique_ptr<svg::Drawable>> picture;

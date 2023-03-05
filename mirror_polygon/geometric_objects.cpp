@@ -35,20 +35,20 @@ double Point::operator[](int i) {
 }
 
 //Операции отношения == и != используются для определения эквивалентности двух точек:
-int Point::operator==(Point p) {
+int Point::operator==(Point p) const{
     return (x == p.x) && (y == p.y);
 }
 
-int Point::operator!=(Point p) {
+int Point::operator!=(Point p) const{
     return !(*this == p);
 }
 
 //Операции < и > реализуют лексикографический порядок отношений
-int Point::operator<(Point p) {
+int Point::operator<(Point p) const{
     return ((x < p.x) || ((x == p.x) && (y < p.y)));
 }
 
-int Point::operator>(Point p) {
+int Point::operator>(Point p) const{
     return ((x > p.x) || ((x == p.x) && (y > p.y)));
 }
 
@@ -120,6 +120,11 @@ double Point::length() {
     return sqrt(x * x + y * y);
 }
 
+double Point::distance(Point p) {
+    double d = sqrt(pow((p.x - x), 2) + pow((p.y - y), 2));
+    return d;
+}
+
 double Point::distance(Edge e) {
     Edge ab = e;
     ab.flip().rot();                            // поворот ab на 90 градусов
@@ -135,6 +140,11 @@ double Point::distance(Edge e) {
     f.intersect(e, t);                          // вдоль вектора f до точки,
                                                 // в которой ребро f пересекает ребро е
     return t;
+}
+
+double distance(Point p1, Point p2) {
+    double d = sqrt(pow((p2.x - p1.x), 2) + pow((p2.y - p1.y), 2));
+    return d;
 }
 
 //------------------Edge--------------------------
@@ -202,7 +212,7 @@ int Edge::cross(Edge e, double t) {
     if ((0.0 <= t) && (t <= 1.0)) {
         return SKEW_CROSS;
     }
-    else
+    //else
     return SKEW_NO_CROSS;
 }
 
@@ -415,7 +425,7 @@ Polygon::~Polygon() {
 }
 
 //-------------------------------------------------------------------
-bool pointlnConvexPolygon(Point s , Polygon &p) {
+bool pointInConvexPolygon(Point s , Polygon &p) {
     if (p. size() == 1) {
         return (s == p.point());
     }
