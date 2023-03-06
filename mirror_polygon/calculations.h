@@ -2,6 +2,7 @@
 
 #include "geometric_objects.h"
 #include "constants.h"
+#include "ex_request.h"
 
 #include <vector>
 #include <iterator>
@@ -37,6 +38,10 @@ bool intersect(const seg &, const seg &);
 
 bool operator<(const seg &, const seg &);
 
+bool operator==(const seg &, const seg &);
+
+bool operator!=(const seg &, const seg &);
+
 struct event {
 	double x;
 	int tp, id;
@@ -58,12 +63,10 @@ inline std::set<seg>::iterator prev(std::set<seg>::iterator);
 
 inline std::set<seg>::iterator next(std::set<seg>::iterator);
 
-std::pair<int, int> solve(const std::vector<seg>&);
+std::pair<int, int> IsPolygonIntersected(const std::vector<seg>&, bool&);
 
 bool IsPointInsideBoundingBox(geo_objects::Point, geo_objects::Point, geo_objects::Point);
 
-// Точка находится внутри многоугольника
 bool IsPointInPolygon(geo_objects::Point, geo_objects::Polygon&);
 
-//bool IsPointInPolygonBinarySearch(geo_objects::Point, geo_objects::Polygon&);
-bool IsPointInPolygonBinarySearch();
+bool IsPointInPolygonBinarySearch(std::vector<geo_objects::Vertex>, std::pair<geo_objects::Point, int>, geo_objects::Point);

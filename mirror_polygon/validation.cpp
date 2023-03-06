@@ -12,36 +12,77 @@ void CheckPolygonSize (int size) {
         throw ValidityError(" - число вершин многоугольника не может быть менее трех"s);
     }
 }
-void CheckPolygonCoordinatesUnique(const vector<geo_objects::Point>& coordinates) {
-    unordered_set<geo_objects::Point, geo_objects::Point::PointHasher> set(coordinates.begin(), coordinates.end());
-    if (set.size() < coordinates.size()) {
+
+void PolygonPrepare(Polygon & mp, Point a, Point b, vector<seg>& v, request::RequestHandler& rh) {
+    rh.p_min.SetPoint(MAX_DOUBLE, MAX_DOUBLE);
+    rh.p_max.SetPoint(MIN_DOUBLE, MIN_DOUBLE);
+    rh.zero_pt = make_pair(Point(MAX_DOUBLE, MAX_DOUBLE), -1);
+    rh.is_convex = mp.IsPolygonConvex();
+    rh.near_edge_a = make_pair(MAX_DOUBLE, Point(0.0, 0.0));
+    rh.near_edge_ab = make_pair(MAX_DOUBLE, make_pair(Point(0.0, 0.0), Point(0.0, 0.0)));
+    for (int i = 0; i < mp.size(); i++, mp.advance(1)) {
+        Point p1 = mp.v()->point();
+        Point p2 = mp.cw()->point();
+        v[i] = seg(p1, p2, i);
+        rh.vertexes.push_back(Vertex(p1));
+        //поиск min max 
+        if (p1.x > rh.p_max.x) {
+            rh.p_max.x = p1.x;
+        } 
+        if (p1.x < rh.p_min.x) {
+            rh.p_min.x = p1.x;
+        }
+        if (p1.y > rh.p_max.y) {
+            rh.p_max.y = p1.y;
+        }
+        if (p1.y < rh.p_min.y) {
+            rh.p_min.y = p1.y;
+        }
+        //Поиск вершины зеро
+        if (p1 < rh.zero_pt.first) {
+            rh.zero_pt = make_pair(p1, i);
+        }
+        //Поиск ближайших точек на ребре к начальной точке и к начальной и конечной точкам
+        pair<bool, Point> normal_a = a.distance_normal(Edge(p1, p2));
+        if (normal_a.first && normal_a.second != p1 && normal_a.second != p2) {
+            long double dist = a.distance(normal_a.second);
+            if (dist < rh.near_edge_a.first) {
+                rh.near_edge_a = make_pair(dist, normal_a.second);
+            }
+            pair<bool, Point> normal_b = b.distance_normal(Edge(p1, p2));
+            if (normal_b.first && normal_b.second != p1 && normal_b.second != p2) {
+                dist -= b.distance(normal_b.second);
+                if (abs(dist) < rh.near_edge_ab.first && normal_a.second != normal_b.second) {
+                    rh.near_edge_ab = make_pair(abs(dist), make_pair(normal_a.second, normal_b.second));
+                }
+            }
+        }
+    }
+}
+
+void CheckPolygonCoordinatesUnique(vector<seg> v) {
+    auto it = unique(v.begin(), v.end());
+    if (it != v.end()) {
         throw ValidityError(" - координаты повторяются"s);
     }
 }
 
-void CheckPolygonCoordinatesNotIntersecting(const vector<geo_objects::Point>& coordinates) {
-    int size = static_cast<int>(coordinates.size());
-    vector<seg> a(size - 1);
-    for (int i = 0; i < size - 1; ++i) {
-        a[i] = seg(coordinates[i], coordinates[i + 1], i);
-    }
-    a.push_back(seg(coordinates[size - 1], coordinates[0], size - 1));//добавляем ребро между последней и первой вершинами
-    pair<int, int> validation_res = solve(a);
+void CheckPolygonCoordinatesNotIntersecting(const vector<seg>& v, bool& is_e_btw_points) {
+    pair<int, int> validation_res = IsPolygonIntersected(v, is_e_btw_points);
     if (validation_res != make_pair(-1, -1)) {
         throw ValidityError(" - многоугольник не должен быть пересекающимся"s);
     }
 }
 
-void CheckPointInsidePolygon(geo_objects::Polygon& mp, geo_objects::Point p_min, geo_objects::Point p_max, geo_objects::Point a, geo_objects::Point b) {
-    bool is_inside = IsPointInsideBoundingBox(a, p_min, p_max);
+void CheckPointInsidePolygon(Polygon& mp, Point a, Point b, request::RequestHandler& rh) {
+    bool is_inside = IsPointInsideBoundingBox(a, rh.p_min, rh.p_max);
     if (is_inside) {
-        bool is_inside = IsPointInsideBoundingBox(b, p_min, p_max);
+        bool is_inside = IsPointInsideBoundingBox(b, rh.p_min, rh.p_max);
         if (is_inside) {
-            int is_convex = mp.IsPolygonConvex();
-            if (!is_convex) {
+            if (!rh.is_convex) {
                 is_inside = IsPointInPolygon(a, mp);
                 if (is_inside) {
-                    is_inside = IsPointInPolygon(a, mp);
+                    is_inside = IsPointInPolygon(b, mp);
                 } else {
                     throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
                 }
@@ -49,15 +90,15 @@ void CheckPointInsidePolygon(geo_objects::Polygon& mp, geo_objects::Point p_min,
                     throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
                 }
             } else {
-                is_inside = IsPointInPolygonBinarySearch();
+                is_inside = IsPointInPolygonBinarySearch(rh.vertexes, rh.zero_pt, a);
                 if (is_inside) {
-                    is_inside = IsPointInPolygonBinarySearch();
+                    is_inside = IsPointInPolygonBinarySearch(rh.vertexes, rh.zero_pt, b);
                 } else {
                     throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
                 }
                 if (!is_inside) {
                     throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
-                }               
+                }
             }
         } else {
             throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
@@ -66,131 +107,17 @@ void CheckPointInsidePolygon(geo_objects::Polygon& mp, geo_objects::Point p_min,
         throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
     }
 }
+
+void PolygonValidation(Polygon &mp, Point a, Point b, request::RequestHandler& rh) {
+    int size = static_cast<int>(mp.size());
+    vector<seg> v(size);
+    PolygonPrepare(mp, a, b, v, rh);
+
+    CheckPolygonCoordinatesUnique(v);
+
+    v.push_back(seg(a, b, mp.size())); //добавляем отрезок между заданными точками (для проверки пересекается ли он с ребром)
+    CheckPolygonCoordinatesNotIntersecting(v, rh.is_e_btw_points);
+
+    CheckPointInsidePolygon(mp, a, b, rh);
+}
 } //namespace in_reader
-
-/*
-class ParsingError : public std::runtime_error {
-public:
-    using runtime_error::runtime_error;
-};
-
-double ReadNumber(std::istream& input) {
-    std::string parsed_num;
-
-    // Считывает в parsed_num очередной символ из input
-    auto read_char = [&parsed_num, &input] {
-        parsed_num += static_cast<char>(input.get());
-        if (!input) {
-            throw ParsingError("Ошибка чтения числа"s);
-        }
-    }; 
-    // Считывает одну или более цифр в parsed_num из input
-    auto read_digits = [&input, read_char] {
-        if (!std::isdigit(input.peek())) {
-            throw ParsingError("A digit is expected"s);
-        }
-        while (std::isdigit(input.peek())) {
-            read_char();
-        }
-    };
-
-}
-
-Node LoadNumber(std::istream& input) {
-    std::string parsed_num;
-
-    // Считывает в parsed_num очередной символ из input
-    auto read_char = [&parsed_num, &input] {
-        parsed_num += static_cast<char>(input.get());
-        if (!input) {
-            throw ParsingError("Failed to read number from stream"s);
-        }
-    };
-
-    // Считывает одну или более цифр в parsed_num из input
-    auto read_digits = [&input, read_char] {
-        if (!std::isdigit(input.peek())) {
-            throw ParsingError("A digit is expected"s);
-        }
-        while (std::isdigit(input.peek())) {
-            read_char();
-        }
-    };
-
-    if (input.peek() == '-') {
-        read_char();
-    }
-    // Парсим целую часть числа
-    if (input.peek() == '0') {
-        read_char();
-        // После 0 в JSON не могут идти другие цифры
-    } else {
-        read_digits();
-    }
-
-    bool is_int = true;
-    // Парсим дробную часть числа
-    if (input.peek() == '.') {
-        read_char();
-        read_digits();
-        is_int = false;
-    }
-
-    // Парсим экспоненциальную часть числа
-    if (int ch = input.peek(); ch == 'e' || ch == 'E') {
-        read_char();
-        if (ch = input.peek(); ch == '+' || ch == '-') {
-            read_char();
-        }
-        read_digits();
-        is_int = false;
-    }
-
-    try {
-        if (is_int) {
-            // Сначала пробуем преобразовать строку в int
-            try {
-                return std::stoi(parsed_num);
-            } catch (...) {
-                // В случае неудачи, например, при переполнении
-                // код ниже попробует преобразовать строку в double
-            }
-        }
-        return std::stod(parsed_num);
-    } catch (...) {
-        throw ParsingError("Failed to convert "s + parsed_num + " to number"s);
-    }
-}
-
-Node LoadNode(std::istream& input) {
-    char c;
-    if (!(input >> c)) {
-        throw ParsingError("Unexpected EOF"s);
-    }
-    switch (c) {
-        case '[':
-            return LoadArray(input);
-        case '{':
-            return LoadDict(input);
-        case '"':
-            return LoadString(input);
-        case 't':
-            // Атрибут [[fallthrough]] (провалиться) ничего не делает, и является
-            // подсказкой компилятору и человеку, что здесь программист явно задумывал
-            // разрешить переход к инструкции следующей ветки case, а не случайно забыл
-            // написать break, return или throw.
-            // В данном случае, встретив t или f, переходим к попытке парсинга
-            // литералов true либо false
-            [[fallthrough]];
-        case 'f':
-            input.putback(c);
-            return LoadBool(input);
-        case 'n':
-            input.putback(c);
-            return LoadNull(input);
-        default:
-            input.putback(c);
-            return LoadNumber(input);
-    }
-}
-*/

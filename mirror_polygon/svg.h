@@ -1,5 +1,7 @@
 #pragma once
 
+#include "geometric_objects.h"
+
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
@@ -10,6 +12,7 @@
 #include <variant>
 #include <vector>
 
+using Point = geo_objects::Point;
 namespace svg {
 class Rgb {
 public:
@@ -223,19 +226,6 @@ void PathProps<Owner>::RenderAttrs(std::ostream& out) const {
     }
 }
 
-struct Point {
-    Point() = default;
-    Point(double x, double y)
-        : x(x)
-        , y(y) {
-    }
-
-    Point &SetPoint(double xx, double yy);
-
-    double x = 0;
-    double y = 0;
-};
-
 /*
  * Вспомогательная структура, хранящая контекст для вывода SVG-документа с отступами.
  * Хранит ссылку на поток вывода, текущее значение и шаг отступа при выводе элемента
@@ -399,7 +389,7 @@ namespace shapes {
 using namespace std::literals;
 class Triangle : public svg::Drawable {
 public:
-    Triangle(svg::Point p1, svg::Point p2, svg::Point p3)
+    Triangle(Point p1, Point p2, Point p3)
         : p1_(p1)
         , p2_(p2)
         , p3_(p3) {
@@ -409,24 +399,24 @@ public:
     void Draw(svg::ObjectContainer &container) const override;
 
 private:
-    svg::Point p1_, p2_, p3_;
+    Point p1_, p2_, p3_;
 };
 
 class Star : public svg::Drawable {
 public:
-    explicit Star (svg::Point center, double outer_rad, double inner_rad, int num_rays) 
+    explicit Star (Point center, double outer_rad, double inner_rad, int num_rays) 
     : center_(center)
     , outer_rad_(outer_rad)
     , inner_rad_(inner_rad)
     , num_rays_(num_rays) {
     }
 
-    svg::Polyline CreateStar(svg::Point center, double outer_rad, double inner_rad, int num_rays) const;
+    svg::Polyline CreateStar(Point center, double outer_rad, double inner_rad, int num_rays) const;
 
     // Реализует метод Draw интерфейса svg::Drawable
     void Draw(svg::ObjectContainer &container) const override;
 private:
-    svg::Point center_ = {0.0, 0.0};
+    Point center_ = {0.0, 0.0};
     double outer_rad_ = 0.0;
     double inner_rad_ = 0.0;
     int num_rays_ = 0;
@@ -435,7 +425,7 @@ private:
 class Snowman : public svg::Drawable {
 public:
 
-    explicit Snowman (svg::Point center_head, double rad_head)
+    explicit Snowman (Point center_head, double rad_head)
     : center_head_(center_head)
     , rad_head_(rad_head) {
     }
@@ -443,7 +433,7 @@ public:
     // Реализует метод Draw интерфейса svg::Drawable
     void Draw(svg::ObjectContainer &container) const override;
 private:
-    svg::Point center_head_ = {0.0, 0.0};
+    Point center_head_ = {0.0, 0.0};
     double rad_head_ = 0.0;
 };
 }//namespace shapes

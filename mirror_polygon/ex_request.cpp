@@ -8,20 +8,38 @@
 
 using namespace std;
 
-/*
-    std::vector<svg::Point> vertexes(size + 1);
-    for (int i = 0; i < size + 1; ++i) {
-        geo_objects::Point p_v = mp.point();
-        svg::Point p(p_v.x, p_v.y);
-        vertexes[i] = p;
-        mp.advance(1);
-    }
-*/
-
-double ComputeAngleBeamFromTwoPoints(geo_objects::Point a, geo_objects::Point b) {
-    //double cos = (a.x * b.x + a.y * b.y) / (sqrt(pow(a.x, 2) + pow(a.y, 2)) * sqrt(pow(b.x, 2) + pow(b.y, 2)));
-    //double angle = acos(cos) * 180.0 / M_PI;
-    double angle = polarAnglePoints(a, b);
-    //cout << fixed << setprecision(3) << angle << '\n';
+namespace request {
+double RequestHandler::ComputeAngleBeamFromOnePoint(Polygon & mp, Point a) {
+    double angle = 0;
+    Point near_normal = near_edge_a.second;
+    angle = polarAnglePoints(a, near_normal);
+    beam1.push_back(a);
+    beam1.push_back(near_normal);
     return angle;
 }
+
+double RequestHandler::ComputeAngleBeamFromTwoPoints(Polygon &mp, Point a, Point b) {
+    double angle = 0;
+    if (!is_e_btw_points) {
+        angle = polarAnglePoints(a, b);
+        beam2.push_back(a);
+        beam2.push_back(b);
+    } else {
+        double x = (near_edge_ab.second.first.x + near_edge_ab.second.second.x) / 2;
+        double y = (near_edge_ab.second.first.y + near_edge_ab.second.second.y) / 2;
+        Point centre = Point(x, y);
+        angle = polarAnglePoints(a, centre);
+        beam2.push_back(a);
+        beam2.push_back(centre);
+        beam2.push_back(b);
+    }
+    return angle;
+}
+
+bool RequestHandler::ExecuteRequest(ostream& os, Polygon &mp, Point a, Point b) {
+    angle1 = ComputeAngleBeamFromOnePoint(mp, a);
+    angle2 = ComputeAngleBeamFromTwoPoints(mp, a, b);
+    bool is_success_write = OutputResult(os, angle1, angle2);
+    return is_success_write;
+}
+}//namespace request

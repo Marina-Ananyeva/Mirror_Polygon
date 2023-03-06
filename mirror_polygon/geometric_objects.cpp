@@ -24,88 +24,28 @@ Point Point::operator-(Point p) {
     return Point (x - p.x, y - p.y);
 }
 
-//Операция скалярного умножения реализована в виде дружественной функции классу Point, 
-//а не члена класса, поскольку ее первый операнд не относится к типу Point. Оператор определен следующим образом:
 Point operator*(double s, Point p) {
     return Point(s * p.x, s * p.y);
 }
 
-//Операция-функция operator[] возвращает координату х текущей точки, если в обращении 
-//в качестве индекса координаты было указано значение О, или координату у при указании значения индекса 1:
 double Point::operator[](int i) {
     return (i == 0) ? x : y;
 }
 
-//Операции отношения == и != используются для определения эквивалентности двух точек:
-int Point::operator==(Point p) const{
+bool Point::operator==(Point p) const{
     return (x == p.x) && (y == p.y);
 }
 
-int Point::operator!=(Point p) const{
+bool Point::operator!=(Point p) const{
     return !(*this == p);
 }
 
-//Операции < и > реализуют лексикографический порядок отношений
-int Point::operator<(Point p) const{
-    return ((x < p.x) || ((x == p.x) && (y < p.y)));
+bool Point::operator<(Point p) const{
+    return ((x < p.x) || ((x - p.x < EPSILON) && (y < p.y)));
 }
 
-int Point::operator>(Point p) const{
-    return ((x > p.x) || ((x == p.x) && (y > p.y)));
-}
-
-enum {LEFT, RIGHT, BEYOND, BEHIND, BETWEEN, ORIGIN, DESTINATION};
-//    СЛЕВА, СПРАВА, ВПЕРЕДИ, ПОЗАДИ, МЕЖДУ, НАЧАЛО, КОНЕЦ
-
-int Point::classify(Point p0, Point p1) {
-    Point p2 = *this;
-    Point a = p1 - p0;
-    Point b = p2 - p0;
-    double sa = a.x * b.y - b.x * a.y;
-    if (sa > 0.0) {
-        return LEFT;
-    }
-    if (sa < 0.0) {
-        return RIGHT;
-    }
-    if ((a.x * b.x < 0.0) || (a.y * b.y < 0.0)) {
-        return BEHIND;
-    }
-    if (b.length() - a.length() < EPSILON) {
-        return BEYOND;
-    }
-    if (p0 == p2) {
-        return ORIGIN;
-    }
-    if (p1 == p2) {
-        return DESTINATION;
-    }
-    return BETWEEN;
-}
-
-int Point::classify(Edge e) {
-    return classify(e.org, e.dest);
-}
-
-double Point::polarAngle() {
-    if ((x == 0.0) && (y == 0.0)) {
-        return -1.0;
-    }
-    if (x == 0.0) {
-        return ((y > 0.0) ? 90 : 270);
-    }
-
-    double theta = atan(y / x) * 180.0 / M_PI;                        // в радианах
-    //theta *= 180.0  M_PI;                             // перевод в градусы
-    //if (x > 0.0)                                    // 1 и 4 квадранты
-    //    return ((y >= 0.0) ? theta : 360.0 + theta);
-    //else                                            // 2 и З квадранты
-    //    return (180.0 + theta);
-    return theta;
-}
-
-double Point::length() {
-    return sqrt(x * x + y * y);
+bool Point::operator>(Point p) const{
+    return ((x > p.x) || ((x - p.x < EPSILON) && (y > p.y)));
 }
 
 double Point::distance(Point p) {
@@ -113,34 +53,25 @@ double Point::distance(Point p) {
     return d;
 }
 
-double Point::distance(Edge e) {
-    Edge ab = e;
-    ab.flip().rot();                            // поворот ab на 90 градусов
-                                                // против часовой стрелки
-    Point n(ab.dest -  ab.org);
-                                                // n = вектор, перпендикулярный ребру е
-    n = (1.0 / n.length()) * n;
-                                                // нормализация вектора n
-    Edge f(*this, *this + n);
-                                                // ребро f = n позиционируется 
-                                                // на текущей точке  
-    double t;                                   // t = расстоянию со знаком
-    f.intersect(e, t);                          // вдоль вектора f до точки,
-                                                // в которой ребро f пересекает ребро е
-    return t;
-}
-
-int orientation(Point p0, Point p1, Point p2) {
-    Point a = p1 - p0;
-    Point b = p2 - p0;
-     double sa = a.x * b.y - b.x * a.y;
-    if (sa > 0.0) {
-        return 1;
+pair<bool, Point> Point::distance_normal(Edge e) {
+    double x1 = e.org.x;
+    double y1 = e.org.y;
+    double x2 = e.dest.x;
+    double y2 = e.dest.y;
+    long double L = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+    long double PR = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1);
+    bool res = true;
+    long double cf = PR / L;
+    if(cf < 0) {
+        cf = 0; res = false; 
     }
-    if (sa < 0.0) {
-        return -1;
+    if(cf > 1) { 
+        cf = 1;
+        res = false; 
     }
-    return 0;
+    long double xres = x1 + cf * (x2 - x1);
+    long double yres = y1 + cf * (y2 - y1);
+    return make_pair(res, Point(xres, yres));
 }
 
 double polarAnglePoints(Point a, Point b) {
@@ -197,89 +128,6 @@ Edge::Edge(Point _org, Point _dest): org (_org), dest (_dest) {
 Edge::Edge(): org (Point (0.0, 0.0)), dest (Point (1.0, 0.0)) {
 }
 
-//Поворот ребра на 90 градусов по часовой стрелке
-Edge &Edge::rot() {
-    Point m = 0.5 * (org + dest);
-    Point v = dest - org;
-    Point n(v.y, - v.x);
-    Point x = 0.5 * n;
-    org = m - x;
-    dest = m + x;
-    return *this;
-}
-
-Edge &Edge::flip() {
-    return rot().rot();
-}
-
-Point Edge::point(double t) {
-    return Point(org + t * (dest - org));
-}
-
-double Edge::dotProduct(Point p, Point q) {
-  return (p.x * q.x + p.y * q.y);
-}
-
-enum { COLLINEAR, PARALLEL, SKEW, SKEW_CROSS, SKEW_NO_CROSS };
-int Edge::intersect(Edge e, double t) {
-    Point a = org;
-    Point b = dest;
-    Point c = e.org;
-    Point d = e.dest;
-    Point n = Point((d - c).y, (c - d).x);
-    double denom = dotProduct(n, b - a);
-    if (denom ==0.0) {
-        int aclass = org.classify(e);
-        if ((aclass==LEFT) || (aclass==RIGHT)) {
-            return PARALLEL;
-        }
-        else return COLLINEAR;
-    }
-    double num = dotProduct(n, a-c);
-    t = -num / denom;
-    return SKEW;
-}
-
-int Edge::cross(Edge e, double t) {
-    double s;
-    int crossType = e.intersect(*this, s);
-    if ((crossType == COLLINEAR) || (crossType == PARALLEL)) {
-        return crossType;
-    }
-
-    if ((s < 0.0) || (s > 1.0)) {
-        return SKEW_NO_CROSS;
-    }
-
-    intersect(e, t);
-    if ((0.0 <= t) && (t <= 1.0)) {
-        return SKEW_CROSS;
-    }
-    //else
-    return SKEW_NO_CROSS;
-}
-
-//Компонентная функция isVertical возвращает значение TRUE (истина) только в том случае, 
-//если текущее ребро вертикально:
-bool Edge::isVertical() {
-    return (org.x == dest.x);
-}
-
-//Компонентная функция slope возвращает величину наклона текущего ребра или значение DBL_MAX, 
-//если текущее ребро вертикально:
-double Edge::slope() {
-    if (org.x != dest.x) {
-        return (dest.y - org.y) / (dest.x - org.x);
-    }
-    return MAX_DOUBLE;
-}
-
-//Для компонентной функции у задается значение х и она возвращает значение у, соответствующее точке (х, у) 
-//на текущей бесконечной прямой линии. Функция действует только в том случае, если текущее ребро не вертикально.
-double Edge::у(double x) {
-    return slope() * (x - org.x) + org.y;
-}
-
 //--------------Node-------------------------
 Node::Node(): _next (this) , _prev (this) {
 }
@@ -305,16 +153,6 @@ Node *Node::remove() {
     _next->_prev = _prev;
     _next = _prev = this;
     return  this;
-}
-
-void Node::splice(Node *b) {
-    Node *a = this;
-    Node *an = a->_next;
-    Node *bn = b->_next;
-    a->_next = bn;
-    b->_next = an;
-    an->_prev = b;
-    bn->_prev = a;
 }
 
 Node::~Node() {
@@ -354,17 +192,6 @@ Vertex *Vertex::insert(Vertex *v) {
 
 Vertex *Vertex::remove() {
     return (Vertex *) (Node::remove ());
-}
-
-void Vertex::splice(Vertex *b) {
-    Node::splice (b);
-}
-
-Vertex *Vertex::split(Vertex *b) {
-    Vertex *bр = b->ccw()->insert(new Vertex(b->point()));  // занесение bр перед вершиной b
-    insert(new Vertex(point()));                            // занесение ар после текущей вершины
-    splice(bр);
-    return bр;
 }
 
 //----------------------Polygon--------------------
@@ -450,20 +277,7 @@ void Polygon::remove() {
     delete v->remove();
 }
 
-Polygon *Polygon::split(Vertex *b) {
-    Vertex *bp = _v->split(b);
-    resize();
-    return new Polygon(bp);
-}
-
-/*
-   Return whether a polygon in 2D is concave or convex
-   return 0 for incomputables eg: colinear points
-          CONVEX == 1
-          CONCAVE == -1
-   It is assumed that the polygon is simple
-   (does not intersect itself or have holes)
-*/
+//Возвращает 1 - если выпуклый и -1, если не выпуклый
 int Polygon::IsPolygonConvex() {
     if (_size == 3) {
         return 1;
@@ -497,23 +311,6 @@ Polygon::~Polygon() {
 }
 
 //-------------------------------------------------------------------
-bool pointInConvexPolygon(Point s , Polygon &p) {
-    if (p.size() == 1) {
-        return (s == p.point());
-    }
-    if (p.size() == 2) {
-        int c = s.classify(p. edge());
-        return ( (c==BETWEEN) || (c==ORIGIN) || (c==DESTINATION) );
-    }
-    Vertex *org = p.v();
-    for (int i = 0; i < p.size(); i++, p.advance(CLOCKWISE)) {
-        if (s.classify(p.edge()) == LEFT) {
-            p.setV(org);
-            return false;
-        } 
-    }
-  return true;
-}
 
 Vertex *leastVertex(Polygon &p, int (*cmp)(Point*,Point*)) {
     Vertex *bestV = p.v();

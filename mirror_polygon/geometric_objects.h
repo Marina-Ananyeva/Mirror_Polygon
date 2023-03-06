@@ -21,37 +21,19 @@ public:
     Point operator+(Point);
     Point operator-(Point);
     friend Point operator*(double, Point);
-    
-    // возвращает координату х, если в качестве индекса
-    // координаты указано значение О, или координату у при индексе 1
+
     double operator[](int);
     
-    // одинаковы ли точки ?
-    int operator==(Point) const;
-    int operator!=(Point) const;
-    
-    // лексикографический порядок отношений, точка а < точки b,
-    // если либо а.х < b.х, либо a.х = b.x и а.у < b.у.  
-    int operator<(Point) const;
-    int operator>(Point) const;
+    bool operator==(Point) const;
+    bool operator!=(Point) const;
 
-    //Разделение плоскости на семь областей направленным отрезком прямой линии
-    // Возвращается значение типа перечисления, указывающее на положение
-    // точки относительно отрезка
-    enum {LEFT, RIGHT, BEYOND, BEHIND, BETWEEN, ORIGIN, DESTINATION};
-    //       СЛЕВА, СПРАВА, ВПЕРЕДИ, ПОЗАДИ, МЕЖДУ,   НАЧАЛО, КОНЕЦ
-    int classify(Point, Point);
-    int classify(Edge);  // ребро вместо пары точек
-    
-    // Угол точки в полярной системе координат
-    // возвращает -1, если точка = (0, 0)
-    double polarAngle(); 
-  
-    double length();
+    bool operator<(Point) const;
+    bool operator>(Point) const;
   
     double distance(Point);
 
-    double distance(Edge);
+    //определяет можно ли провести из точки на отрезок нормаль и реквизиты точки пересечения
+    std::pair<bool, Point> distance_normal(Edge);
 
     struct PointHasher {
         std::size_t operator()(const Point& p) const {
@@ -61,10 +43,7 @@ public:
     };
 };
 
-//Функция orientation возвращает значение 1, если обрабатываемые три точки ориентированы положительно,
-// -1, если они ориентированы отрицательно, или 0, если они коллинеарны.
-int orientation(Point, Point, Point);
-
+//определяет полярнй угол между двумя точками
 double polarAnglePoints(Point, Point);
 
 double distance(Point, Point);
@@ -83,15 +62,6 @@ public:
     
     Edge (Point _org, Point _dest);
     Edge ();
-    Edge &rot();
-    Edge &flip();
-    Point point(double);
-    int intersect(Edge, double);
-    double dotProduct(Point, Point);
-    int cross(Edge, double);
-    bool isVertical();
-    double slope();
-    double у(double);
 };
 
 //--------------Node-------------------------
@@ -105,7 +75,6 @@ public:
     Node *prev();
     Node *insert(Node*);    // вставить узел после текущего
     Node *remove();     // удалить узел из списка, возвратить его указатель
-    void splice(Node*);
     virtual ~Node ();
 };
 
@@ -120,19 +89,17 @@ public:
     Point point();
     Vertex *insert(Vertex*);
     Vertex *remove();
-    void splice(Vertex*);
-    Vertex *split(Vertex*);
     friend class Polygon;
 };
 
 //----------------------Polygon--------------------
 class Polygon {
-//private:
+private:
 public:
     Vertex *_v;
     int _size;
     void resize();
-//public:
+public:
     Polygon();
     Polygon(Polygon&);
     Polygon(Vertex*);
@@ -147,12 +114,9 @@ public:
     Vertex *setV(Vertex*);
     Vertex *insert(Point);
     void remove();
-    Polygon * split(Vertex*);
     int IsPolygonConvex();
     ~Polygon();
 };
-
-bool pointInConvexPolygon(Point, Polygon &);
 
 Vertex *leastVertex(Polygon &p, int (*cmp)(Point *, Point *));
 

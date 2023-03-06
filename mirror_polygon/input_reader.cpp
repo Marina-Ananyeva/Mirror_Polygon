@@ -9,76 +9,53 @@
 using namespace std;
 
 namespace in_reader{
-void ReadFromConsole(std::istream& input, geo_objects::Polygon &mp, geo_objects::Point& a, geo_objects::Point& b) {
+void ReadFromConsole(std::istream& input, Polygon &mp, Point& a, Point& b, request::RequestHandler& rh) {
     cout << "\nВведите количество вершин многоугольника (не менее 3):" << '\n';
     int size = 0;
     input >> size;
     CheckPolygonSize(size);
 
     cout << "\nВведите координаты вершин (по порядку):" << '\n';
-    vector<geo_objects::Point> coordinates(size);
+
     for (int i = 0; i < size; ++i) {
         double x = 0.0, y = 0.0;
         input >> x >> y;
-        geo_objects::Point p(x, y);
-        coordinates[i] = p;
+        Point p(x, y);
+        mp.insert(Point(p));
     }
-
-    CheckPolygonCoordinatesUnique(coordinates);
-
-    CheckPolygonCoordinatesNotIntersecting(coordinates);
-
-    for (const auto p : coordinates) {
-        mp.insert(geo_objects::Point(p));
-    }
-
     mp.resize();
-
+    
     cout << "\nВведите координаты начальной и конечной точек:" << '\n';
     double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
-    input >> x1 >> y1 >> x2 >> y2;
-
-    //CheckPointInsidePolygon(mp, geo_objects::Point(x1, y1), geo_objects::Point(x2, y2));
-
+    input >> x1 >> y1 >> x2 >> y2; 
     a.SetPoint(x1, y1);
     b.SetPoint(x2, y2);
+
+    PolygonValidation(mp, a, b, rh);
 }
 
-void ReadFromFile(std::istream& input, geo_objects::Polygon &mp, geo_objects::Point& a, geo_objects::Point& b) {
+void ReadFromFile(std::istream& input, Polygon &mp, Point& a, Point& b, request::RequestHandler& rh) {
     int size = 0;
     input >> size;
     CheckPolygonSize(size);
 
-    vector<geo_objects::Point> coordinates(size);
     for (int i = 0; i < size; ++i) {
         double x = 0.0, y = 0.0;
         input >> x >> y;
-        geo_objects::Point p(x, y);
-        coordinates[i] = p;
+        Point p(x, y);
+        mp.insert(Point(p));
     }
-
-    CheckPolygonCoordinatesUnique(coordinates);
-
-    CheckPolygonCoordinatesNotIntersecting(coordinates);
-
-    for (const auto p : coordinates) {
-        mp.insert(geo_objects::Point(p));
-    }
-
     mp.resize();
 
     double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
-    input >> x1 >> y1 >> x2 >> y2;
-
-    //CheckPointInsidePolygon(mp, geo_objects::Point(x1, y1), geo_objects::Point(x2, y2));
-
+    input >> x1 >> y1 >> x2 >> y2; 
     a.SetPoint(x1, y1);
     b.SetPoint(x2, y2);
+
+    PolygonValidation(mp, a, b, rh);
 }
 
-bool ReadQuery(std::istream& input, geo_objects::Polygon &mp, geo_objects::Point& a, geo_objects::Point& b) {
-    //bool is_success_read = false;
-    
+bool ReadQuery(std::istream& input, Polygon &mp, Point& a, Point& b, request::RequestHandler& rh) {
     std::cout << "\nВыберите способ ввода данных: 1 - из файла, 2 - с консоли"s << '\n';
     int read_type = 0;                                                     //тип входных данных (1 - файл, 2 - консоль)
     input >> read_type;
@@ -89,19 +66,17 @@ bool ReadQuery(std::istream& input, geo_objects::Polygon &mp, geo_objects::Point
         std::cin.rdbuf(in.rdbuf());
 
         try {
-            ReadFromFile(input, mp, a, b);
+            ReadFromFile(input, mp, a, b, rh);
         } catch (const std::exception & e) {
            std::cin.rdbuf(cinbuf);
 
             cout << e.what() << '\n' << "\nПовторить ввод? Введите \"1 - да\" или \"2 - нет\":"s << '\n';
             int ans;
             input >> ans;
-            //input >> ans;
             if (ans == 1) {
-                ReadQuery(input, mp, a, b);
+                ReadQuery(input, mp, a, b, rh);
             } else {
                 cout << "\nБлагодарим за использование нашей программы!"s << '\n';
-                //is_success_read = false;
                 return false;
             }
         }
@@ -109,28 +84,25 @@ bool ReadQuery(std::istream& input, geo_objects::Polygon &mp, geo_objects::Point
         std::cin.rdbuf(cinbuf);
     } else if (read_type == 2) {
         try {
-            ReadFromConsole(input, mp, a, b);
+            ReadFromConsole(input, mp, a, b, rh);
         } catch (const std::exception & e) {
             cout << e.what() << '\n' << "\nПовторить ввод? Введите \"1 - да\" или \"2 - нет\":"s << '\n';
             int ans;
             input >> ans;
             if (ans == 1) {
-                ReadQuery(input, mp, a, b);
+                ReadQuery(input, mp, a, b, rh);
             } else {
-                //is_success_read = false;
                 return false;
             }
         }
     } else {
         cout << "\nСпособ ввода данных выбран некорректно"s << '\n';
         cout << "\nПовторить ввод? Введите \"1 - да\" или \"2 - нет\":"s << '\n';
-        //input.ignore();
         int ans;
         input >> ans;
         if (ans == 1) {
-            ReadQuery(input, mp, a, b);
+            ReadQuery(input, mp, a, b, rh);
         } else {
-            //is_success_read = false;
             return false;
         }
     }

@@ -68,12 +68,6 @@ std::ostream& operator<<(std::ostream& os, StrokeLineJoin type) {
     return os;
 }
 
-Point& Point::SetPoint (double xx, double yy) {
-        x = xx;
-        y = yy;
-        return *this;
-}
-
 void Object::Render(const RenderContext& context) const {
     context.RenderIndent();
 
@@ -229,7 +223,7 @@ void Triangle::Draw(svg::ObjectContainer& container) const {
     container.Add(svg::Polyline().AddPoint(p1_).AddPoint(p2_).AddPoint(p3_).AddPoint(p1_));
 }
 
-svg::Polyline Star::CreateStar(svg::Point center, double outer_rad, double inner_rad, int num_rays) const {
+svg::Polyline Star::CreateStar(Point center, double outer_rad, double inner_rad, int num_rays) const {
     using namespace svg;
     Polyline polyline;
     for (int i = 0; i <= num_rays; ++i) {
@@ -252,12 +246,12 @@ void Star::Draw(svg::ObjectContainer& container) const {
 // Реализует метод Draw интерфейса svg::Drawable для Snowman
 void Snowman::Draw(svg::ObjectContainer& container) const {
     container.Add(svg::Circle()
-                            .SetCenter(svg::Point{center_head_.x, center_head_.y + 5 * rad_head_})
+                            .SetCenter(Point{center_head_.x, center_head_.y + 5 * rad_head_})
                             .SetRadius(rad_head_ * 2.0)
                             .SetFillColor("rgb(240,240,240)"s)
                             .SetStrokeColor("black"s));
     container.Add(svg::Circle()
-                            .SetCenter(svg::Point{center_head_.x, center_head_.y + 2 * rad_head_})
+                            .SetCenter(Point{center_head_.x, center_head_.y + 2 * rad_head_})
                             .SetRadius(rad_head_ * 1.5)
                             .SetFillColor("rgb(240,240,240)"s)
                             .SetStrokeColor("black"s));

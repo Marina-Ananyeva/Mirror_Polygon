@@ -14,6 +14,8 @@ void TestCheckIsPolygonConvex();
 
 void TestCheckPointInsidePolygon();
 
+void TestComputeAngleBeamFromOnePoint();
+
 void TestComputeAngleBeamFromTwoPoints();
 
 void TestBeamsVisualization();
