@@ -10,12 +10,12 @@ using namespace std;
 
 namespace in_reader{
 void ReadFromConsole(std::istream& input, Polygon &mp, Point& a, Point& b, request::RequestHandler& rh) {
-    cout << "\nВведите количество вершин многоугольника (не менее 3):" << '\n';
+    cout << "\nEnter the number of polygon vertexes (at least 3):" << '\n';
     int size = 0;
     input >> size;
     CheckPolygonSize(size);
 
-    cout << "\nВведите координаты вершин (по порядку):" << '\n';
+    cout << "\nEnter the coordinates of vertexes (in order):" << '\n';
 
     for (int i = 0; i < size; ++i) {
         double x = 0.0, y = 0.0;
@@ -25,7 +25,7 @@ void ReadFromConsole(std::istream& input, Polygon &mp, Point& a, Point& b, reque
     }
     mp.resize();
     
-    cout << "\nВведите координаты начальной и конечной точек:" << '\n';
+    cout << "\nEnter the coordinates of the start and end points:" << '\n';
     double x1 = 0.0, y1 = 0.0, x2 = 0.0, y2 = 0.0;
     input >> x1 >> y1 >> x2 >> y2; 
     a.SetPoint(x1, y1);
@@ -56,7 +56,7 @@ void ReadFromFile(std::istream& input, Polygon &mp, Point& a, Point& b, request:
 }
 
 bool ReadQuery(std::istream& input, Polygon &mp, Point& a, Point& b, request::RequestHandler& rh) {
-    std::cout << "\nВыберите способ ввода данных: 1 - из файла, 2 - с консоли"s << '\n';
+    std::cout << "\nSelect the input method: 1 - from file, 2 - from console"s << '\n';
     int read_type = 0;                                                     //тип входных данных (1 - файл, 2 - консоль)
     input >> read_type;
     
@@ -70,13 +70,13 @@ bool ReadQuery(std::istream& input, Polygon &mp, Point& a, Point& b, request::Re
         } catch (const std::exception & e) {
            std::cin.rdbuf(cinbuf);
 
-            cout << e.what() << '\n' << "\nПовторить ввод? Введите \"1 - да\" или \"2 - нет\":"s << '\n';
+            cout << e.what() << '\n' << "\nRepeat input? Enter \"1 - yes\" or \"2 - no\":"s << '\n';
             int ans;
             input >> ans;
             if (ans == 1) {
                 ReadQuery(input, mp, a, b, rh);
             } else {
-                cout << "\nБлагодарим за использование нашей программы!"s << '\n';
+                cout << "\nThanks for using our program!"s << '\n';
                 return false;
             }
         }
@@ -86,7 +86,7 @@ bool ReadQuery(std::istream& input, Polygon &mp, Point& a, Point& b, request::Re
         try {
             ReadFromConsole(input, mp, a, b, rh);
         } catch (const std::exception & e) {
-            cout << e.what() << '\n' << "\nПовторить ввод? Введите \"1 - да\" или \"2 - нет\":"s << '\n';
+            cout << e.what() << '\n' << "\nRepeat input? Enter \"1 - yes\" or \"2 - no\":"s << '\n';
             int ans;
             input >> ans;
             if (ans == 1) {
@@ -96,8 +96,8 @@ bool ReadQuery(std::istream& input, Polygon &mp, Point& a, Point& b, request::Re
             }
         }
     } else {
-        cout << "\nСпособ ввода данных выбран некорректно"s << '\n';
-        cout << "\nПовторить ввод? Введите \"1 - да\" или \"2 - нет\":"s << '\n';
+        cout << "\nThe input method is selected incorrectly"s << '\n';
+        cout << "\nRepeat input? Enter \"1 - yes\" or \"2 - no\":"s << '\n';
         int ans;
         input >> ans;
         if (ans == 1) {

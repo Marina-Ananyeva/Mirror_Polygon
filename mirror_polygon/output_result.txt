@@ -1,6 +1,6 @@
 
-Результаты расчетов:
+Calculation result:
 
-Первый угол 56.310 градусов.
+First angle 56.310 degrees.
 
-Второй угол -63.435 градусов.
+Second angle -63.435 degrees.
