@@ -17,7 +17,7 @@ public:
     }
     std::string MakeErrorMessage(const std::string& error_text) {
         using namespace std::literals;
-        return "\nВходные данные некорректны"s + error_text;
+        return "\nThe input data is incorrect"s + error_text;
     }
 };
 

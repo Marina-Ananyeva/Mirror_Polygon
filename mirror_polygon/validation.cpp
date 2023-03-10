@@ -9,7 +9,7 @@ using namespace std;
 namespace in_reader{
 void CheckPolygonSize (int size) {
     if (size < 3) {
-        throw ValidityError(" - число вершин многоугольника не может быть менее трех"s);
+        throw ValidityError(" - the number of vertexes cannot be less than three"s);
     }
 }
 
@@ -63,14 +63,14 @@ void PolygonPrepare(Polygon & mp, Point a, Point b, vector<seg>& v, request::Req
 void CheckPolygonCoordinatesUnique(vector<seg> v) {
     auto it = unique(v.begin(), v.end());
     if (it != v.end()) {
-        throw ValidityError(" - координаты повторяются"s);
+        throw ValidityError(" - coordinates are repeated"s);
     }
 }
 
 void CheckPolygonCoordinatesNotIntersecting(const vector<seg>& v, bool& is_e_btw_points) {
     pair<int, int> validation_res = IsPolygonIntersected(v, is_e_btw_points);
     if (validation_res != make_pair(-1, -1)) {
-        throw ValidityError(" - многоугольник не должен быть пересекающимся"s);
+        throw ValidityError(" - polygon must not intersect"s);
     }
 }
 
@@ -84,27 +84,27 @@ void CheckPointInsidePolygon(Polygon& mp, Point a, Point b, request::RequestHand
                 if (is_inside) {
                     is_inside = IsPointInPolygon(b, mp);
                 } else {
-                    throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
+                    throw ValidityError(" - the starting point is not inside polygon"s);
                 }
                 if (!is_inside) {
-                    throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+                    throw ValidityError(" - the endpoint is not inside polygon"s);
                 }
             } else {
                 is_inside = IsPointInPolygonBinarySearch(rh.vertexes, rh.zero_pt, a);
                 if (is_inside) {
                     is_inside = IsPointInPolygonBinarySearch(rh.vertexes, rh.zero_pt, b);
                 } else {
-                    throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
+                    throw ValidityError(" - the starting point is not inside polygon"s);
                 }
                 if (!is_inside) {
-                    throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+                    throw ValidityError(" - the endpoint is not inside polygon"s);
                 }
             }
         } else {
-            throw ValidityError(" - конечная точка находится не внутри многоугольника"s);
+            throw ValidityError(" - the endpoint is not inside polygon"s);
         }
     } else {
-        throw ValidityError(" - начальная точка находится не внутри многоугольника"s);
+        throw ValidityError(" - the starting point is not inside polygon"s);
     }
 }
 
